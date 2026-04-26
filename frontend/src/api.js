@@ -2,7 +2,7 @@ const getToken = () => localStorage.getItem('token');
 
 const isNative = window.location.protocol === 'capacitor:' ||
   (window.location.hostname === 'localhost' && window.location.port === '');
-const BASE = isNative ? 'https://mi-caja-production.up.railway.app' : '';
+const BASE = isNative ? 'https://micaja.up.railway.app' : '';
 
 async function req(method, path, body, isForm = false) {
   const headers = {};

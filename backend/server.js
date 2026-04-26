@@ -8,7 +8,7 @@ app.use(cors({
     'http://localhost',
     'http://localhost:5173',
     'capacitor://localhost',
-    'https://mi-caja-production.up.railway.app'
+    'https://micaja.up.railway.app'
   ],
   credentials: true
 }));
