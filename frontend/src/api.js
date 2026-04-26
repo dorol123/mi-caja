@@ -1,12 +1,16 @@
 const getToken = () => localStorage.getItem('token');
 
+const isNative = window.location.protocol === 'capacitor:' ||
+  (window.location.hostname === 'localhost' && window.location.port === '');
+const BASE = isNative ? 'https://mi-caja-production.up.railway.app' : '';
+
 async function req(method, path, body, isForm = false) {
   const headers = {};
   const token = getToken();
   if (token) headers['Authorization'] = `Bearer ${token}`;
   if (!isForm && body) headers['Content-Type'] = 'application/json';
 
-  const res = await fetch(`/api${path}`, {
+  const res = await fetch(`${BASE}/api${path}`, {
     method,
     headers,
     body: isForm ? body : body ? JSON.stringify(body) : undefined

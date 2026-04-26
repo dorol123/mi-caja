@@ -3,7 +3,15 @@ const cors = require('cors');
 const path = require('path');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost',
+    'http://localhost:5173',
+    'capacitor://localhost',
+    'https://mi-caja-production.up.railway.app'
+  ],
+  credentials: true
+}));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
