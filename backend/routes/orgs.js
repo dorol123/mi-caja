@@ -9,25 +9,7 @@ function generateCode() {
   return Math.floor(10000 + Math.random() * 90000).toString();
 }
 
-function getNextReset(frequencyDays) {
-  const d = new Date();
-  d.setDate(d.getDate() + Number(frequencyDays));
-  return d.toISOString();
-}
-
-function checkAndResetBalance(org, userId) {
-  if (org.is_unlimited || !org.next_reset_at) return org;
-  if (new Date(org.next_reset_at) > new Date()) return org;
-
-  const newBalance = org.current_balance + org.initial_amount;
-  const nextReset = getNextReset(org.frequency_days);
-  db.prepare('UPDATE organizations SET current_balance = ?, next_reset_at = ? WHERE id = ?')
-    .run(newBalance, nextReset, org.id);
-  db.prepare('INSERT INTO movements (org_id, type, description, actioned_by, amount) VALUES (?, ?, ?, ?, ?)')
-    .run(org.id, 'balance_reset', 'Recarga automática de caja', userId, org.initial_amount);
-  return { ...org, current_balance: newBalance, next_reset_at: nextReset };
-}
-
+// Get user's active orgs
 router.get('/', (req, res) => {
   const orgs = db.prepare(`
     SELECT o.*, m.role, m.status, m.reimbursement_balance
@@ -39,8 +21,9 @@ router.get('/', (req, res) => {
   res.json(orgs);
 });
 
+// Create org — uses explicit transaction since node:sqlite has no db.transaction()
 router.post('/', (req, res) => {
-  const { name, initialAmount, isUnlimited, frequencyDays, showBalanceToUsers } = req.body;
+  const { name, initialAmount, isUnlimited, showBalanceToUsers } = req.body;
   if (!name || !name.trim()) return res.status(400).json({ error: 'El nombre es requerido' });
 
   let code;
@@ -52,15 +35,13 @@ router.post('/', (req, res) => {
 
   const unlimited = isUnlimited === true || isUnlimited === 'true';
   const amount = unlimited ? null : (parseFloat(initialAmount) || 0);
-  const freqDays = parseInt(frequencyDays) || 30;
-  const nextReset = unlimited ? null : getNextReset(freqDays);
 
   db.exec('BEGIN');
   try {
     const org = db.prepare(`
-      INSERT INTO organizations (name, code, creator_id, initial_amount, is_unlimited, frequency_days, current_balance, show_balance_to_users, next_reset_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(name.trim(), code, req.user.id, amount, unlimited ? 1 : 0, freqDays, amount || 0, showBalanceToUsers ? 1 : 0, nextReset);
+      INSERT INTO organizations (name, code, creator_id, initial_amount, is_unlimited, current_balance, show_balance_to_users)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(name.trim(), code, req.user.id, amount, unlimited ? 1 : 0, amount || 0, showBalanceToUsers ? 1 : 0);
 
     const orgId = Number(org.lastInsertRowid);
     db.prepare(`INSERT INTO memberships (user_id, org_id, role, status) VALUES (?, ?, 'admin', 'active')`)
@@ -75,17 +56,18 @@ router.post('/', (req, res) => {
   }
 });
 
+// Get org detail
 router.get('/:id', (req, res) => {
   const m = db.prepare(`SELECT * FROM memberships WHERE user_id = ? AND org_id = ? AND status = 'active'`).get(req.user.id, req.params.id);
   if (!m) return res.status(403).json({ error: 'Sin acceso' });
 
-  let org = db.prepare('SELECT * FROM organizations WHERE id = ?').get(req.params.id);
+  const org = db.prepare('SELECT * FROM organizations WHERE id = ?').get(req.params.id);
   if (!org) return res.status(404).json({ error: 'Organización no encontrada' });
 
-  org = checkAndResetBalance(org, req.user.id);
   res.json({ ...org, role: m.role, reimbursement_balance: m.reimbursement_balance, display_name: m.display_name });
 });
 
+// Update org settings (admin only)
 router.put('/:id', (req, res) => {
   const m = db.prepare(`SELECT * FROM memberships WHERE user_id = ? AND org_id = ? AND status = 'active'`).get(req.user.id, req.params.id);
   if (!m || m.role !== 'admin') return res.status(403).json({ error: 'No autorizado' });
@@ -93,13 +75,12 @@ router.put('/:id', (req, res) => {
   const org = db.prepare('SELECT * FROM organizations WHERE id = ?').get(req.params.id);
   if (!org) return res.status(404).json({ error: 'No encontrada' });
 
-  const { name, initialAmount, isUnlimited, frequencyDays, showBalanceToUsers } = req.body;
+  const { name, initialAmount, isUnlimited, showBalanceToUsers } = req.body;
   const unlimited = isUnlimited === true || isUnlimited === 'true';
   const amount = unlimited ? null : (parseFloat(initialAmount) ?? org.initial_amount);
-  const freqDays = parseInt(frequencyDays) || org.frequency_days;
 
-  db.prepare(`UPDATE organizations SET name=?, initial_amount=?, is_unlimited=?, frequency_days=?, show_balance_to_users=? WHERE id=?`)
-    .run(name?.trim() || org.name, amount, unlimited ? 1 : 0, freqDays, showBalanceToUsers ? 1 : 0, req.params.id);
+  db.prepare(`UPDATE organizations SET name=?, initial_amount=?, is_unlimited=?, show_balance_to_users=? WHERE id=?`)
+    .run(name?.trim() || org.name, amount, unlimited ? 1 : 0, showBalanceToUsers ? 1 : 0, req.params.id);
 
   db.prepare('INSERT INTO movements (org_id, type, description, actioned_by) VALUES (?, ?, ?, ?)')
     .run(req.params.id, 'settings_updated', 'Configuración de la organización actualizada', req.user.id);
@@ -108,6 +89,7 @@ router.put('/:id', (req, res) => {
   res.json({ ...updated, role: m.role, reimbursement_balance: m.reimbursement_balance });
 });
 
+// Join org by code
 router.post('/join', (req, res) => {
   const { code, displayName } = req.body;
   if (!code) return res.status(400).json({ error: 'Código requerido' });
@@ -132,6 +114,7 @@ router.post('/join', (req, res) => {
   res.json({ message: 'Solicitud enviada. Esperá la aprobación de un administrador.' });
 });
 
+// Settle cash (admin only)
 router.post('/:id/settle', (req, res) => {
   const m = db.prepare(`SELECT * FROM memberships WHERE user_id = ? AND org_id = ? AND status = 'active'`).get(req.user.id, req.params.id);
   if (!m || m.role !== 'admin') return res.status(403).json({ error: 'No autorizado' });

@@ -7,7 +7,7 @@ import Modal from '../components/Modal';
 const fmt = (n) => `$${Number(n).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 function CreateOrgForm({ onSuccess, onCancel }) {
-  const [form, setForm] = useState({ name: '', initialAmount: '', isUnlimited: false, frequencyDays: '30', showBalanceToUsers: false });
+  const [form, setForm] = useState({ name: '', initialAmount: '', isUnlimited: false, showBalanceToUsers: false });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -28,27 +28,31 @@ function CreateOrgForm({ onSuccess, onCancel }) {
         <label className="block text-sm font-medium text-slate-600 mb-1.5">Nombre de la organización</label>
         <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} className="w-full bg-slate-100 rounded-xl px-4 py-3.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 text-sm" placeholder="Ej: Empresa XYZ" autoFocus required />
       </div>
+
       <label className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl cursor-pointer">
         <input type="checkbox" checked={form.isUnlimited} onChange={e => setForm(p => ({ ...p, isUnlimited: e.target.checked }))} className="w-5 h-5 text-emerald-500 rounded-lg" />
         <span className="text-sm font-medium text-slate-700">Sin monto límite</span>
       </label>
+
       {!form.isUnlimited && (
         <>
           <div>
             <label className="block text-sm font-medium text-slate-600 mb-1.5">Monto inicial</label>
-            <div className="relative"><span className="absolute left-4 top-3.5 text-slate-400 text-sm font-medium">$</span><input type="number" value={form.initialAmount} onChange={e => setForm(p => ({ ...p, initialAmount: e.target.value }))} className="w-full bg-slate-100 rounded-xl pl-8 pr-4 py-3.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 text-sm" placeholder="0.00" step="0.01" min="0.01" required /></div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1.5">Frecuencia de recarga (días)</label>
-            <input type="number" value={form.frequencyDays} onChange={e => setForm(p => ({ ...p, frequencyDays: e.target.value }))} className="w-full bg-slate-100 rounded-xl px-4 py-3.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 text-sm" min="1" placeholder="30" />
+            <div className="relative">
+              <span className="absolute left-4 top-3.5 text-slate-400 text-sm font-medium">$</span>
+              <input type="number" value={form.initialAmount} onChange={e => setForm(p => ({ ...p, initialAmount: e.target.value }))} className="w-full bg-slate-100 rounded-xl pl-8 pr-4 py-3.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 text-sm" placeholder="0.00" step="0.01" min="0.01" required />
+            </div>
           </div>
         </>
       )}
+
       <label className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl cursor-pointer">
         <input type="checkbox" checked={form.showBalanceToUsers} onChange={e => setForm(p => ({ ...p, showBalanceToUsers: e.target.checked }))} className="w-5 h-5 text-emerald-500 rounded-lg" />
         <span className="text-sm font-medium text-slate-700">Usuarios pueden ver el saldo</span>
       </label>
+
       {error && <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3"><p className="text-red-600 text-sm">{error}</p></div>}
+
       <div className="flex gap-3 pt-1">
         <button type="button" onClick={onCancel} className="flex-1 bg-slate-100 text-slate-600 rounded-xl py-3.5 text-sm font-semibold">Cancelar</button>
         <button type="submit" disabled={loading} className="flex-1 bg-emerald-500 text-white rounded-xl py-3.5 text-sm font-semibold disabled:opacity-50">{loading ? 'Creando...' : 'Crear'}</button>
@@ -88,12 +92,22 @@ function JoinOrgForm({ onSuccess, onCancel }) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-slate-600 mb-1.5">Código de organización</label>
-        <input type="text" inputMode="numeric" value={code} onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 5))} className="w-full bg-slate-100 rounded-xl px-4 py-4 text-slate-800 text-center text-3xl tracking-[0.4em] font-bold focus:outline-none focus:ring-2 focus:ring-emerald-400" placeholder="00000" maxLength={5} autoFocus required />
-        <p className="text-xs text-slate-400 mt-2 text-center">Pedíle el código al administrador</p>
+        <input
+          type="text" inputMode="numeric" value={code}
+          onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 5))}
+          className="w-full bg-slate-100 rounded-xl px-4 py-4 text-slate-800 text-center text-3xl tracking-[0.4em] font-bold focus:outline-none focus:ring-2 focus:ring-emerald-400"
+          placeholder="00000" maxLength={5} autoFocus required
+        />
+        <p className="text-xs text-slate-400 mt-2 text-center">Pedile el código al administrador</p>
       </div>
       <div>
         <label className="block text-sm font-medium text-slate-600 mb-1.5">Tu nombre en esta organización</label>
-        <input type="text" value={displayName} onChange={e => setDisplayName(e.target.value)} className="w-full bg-slate-100 rounded-xl px-4 py-3.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 text-sm" placeholder="¿Cómo te van a ver?" required />
+        <input
+          type="text" value={displayName}
+          onChange={e => setDisplayName(e.target.value)}
+          className="w-full bg-slate-100 rounded-xl px-4 py-3.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 text-sm"
+          placeholder="¿Cómo te van a ver?" required
+        />
       </div>
       {error && <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3"><p className="text-red-600 text-sm">{error}</p></div>}
       <div className="flex gap-3 pt-1">
@@ -126,17 +140,23 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col">
+      {/* Header */}
       <div className="bg-emerald-600 px-5 pt-10 pb-6">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-emerald-200 text-sm">Bienvenido,</p>
             <p className="text-white text-xl font-bold mt-0.5">{displayName}</p>
           </div>
-          <button onClick={logout} className="w-10 h-10 bg-emerald-700 rounded-full flex items-center justify-center text-white font-bold text-sm">{initials}</button>
+          <button onClick={logout} className="w-10 h-10 bg-emerald-700 rounded-full flex items-center justify-center text-white font-bold text-sm">
+            {initials}
+          </button>
         </div>
       </div>
+
+      {/* Body */}
       <div className="flex-1 px-4 py-5">
         <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 px-1">Mis organizaciones</p>
+
         {loading ? (
           <div className="flex items-center justify-center py-20 text-slate-400 text-sm">Cargando...</div>
         ) : orgs.length === 0 ? (
@@ -154,6 +174,7 @@ export default function Home() {
                     <p className="font-semibold text-slate-800 text-base truncate">{org.name}</p>
                     <p className="text-2xl font-bold text-emerald-600 mt-2">{fmt(org.current_balance)}</p>
                     <p className="text-xs text-slate-400 mt-0.5">saldo disponible</p>
+                    {/* Reintegro — solo si hay saldo a favor */}
                     {org.reimbursement_balance > 0 && (
                       <p className="text-sm font-semibold text-blue-500 mt-2">Te deben {fmt(org.reimbursement_balance)}</p>
                     )}
@@ -167,12 +188,20 @@ export default function Home() {
           </div>
         )}
       </div>
-      <button onClick={() => setModal('choose')} className="fixed bottom-6 right-5 w-14 h-14 bg-emerald-500 text-white rounded-full shadow-lg flex items-center justify-center active:bg-emerald-600 transition active:scale-95">
+
+      {/* FAB */}
+      <button
+        onClick={() => setModal('choose')}
+        className="fixed bottom-6 right-5 w-14 h-14 bg-emerald-500 text-white rounded-full shadow-lg flex items-center justify-center active:bg-emerald-600 transition active:scale-95"
+      >
         <span className="text-3xl leading-none mb-0.5">+</span>
       </button>
+
+      {/* Logout */}
       <div className="pb-8 pt-2 text-center">
         <button onClick={logout} className="text-xs text-slate-400">Cerrar sesión</button>
       </div>
+
       {modal === 'choose' && (
         <Modal title="¿Qué querés hacer?" onClose={() => setModal(null)}>
           <div className="space-y-3">
@@ -189,11 +218,13 @@ export default function Home() {
           </div>
         </Modal>
       )}
+
       {modal === 'create' && (
         <Modal title="Nueva organización" onClose={() => setModal(null)}>
           <CreateOrgForm onSuccess={handleOrgCreated} onCancel={() => setModal('choose')} />
         </Modal>
       )}
+
       {modal === 'join' && (
         <Modal title="Unirse a organización" onClose={() => setModal(null)}>
           <JoinOrgForm onSuccess={() => setModal(null)} onCancel={() => setModal('choose')} />

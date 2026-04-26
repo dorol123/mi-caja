@@ -15,6 +15,7 @@ const mvIcon = {
   cash_settled: '💸', balance_reset: '🔄', reimbursement_settled: '💰', settings_updated: '⚙️',
 };
 
+// ─── Pinch-to-zoom lightbox ───────────────────────────────────────────────────
 function ZoomableImage({ src, alt, onClose }) {
   const [scale, setScale] = useState(1);
   const containerRef = useRef();
@@ -45,15 +46,22 @@ function ZoomableImage({ src, alt, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/90 z-50" onClick={onClose}>
       <div ref={containerRef} className="w-full h-full flex items-center justify-center" onClick={e => e.stopPropagation()}>
-        <img src={src} alt={alt} draggable={false} style={{ transform: `scale(${scale})`, transformOrigin: 'center', userSelect: 'none' }} className="max-w-full max-h-full rounded-2xl" onDoubleClick={() => { const ns = scale > 1 ? 1 : 2.5; scaleRef.current = ns; setScale(ns); }} />
+        <img
+          src={src} alt={alt} draggable={false}
+          style={{ transform: `scale(${scale})`, transformOrigin: 'center', userSelect: 'none' }}
+          className="max-w-full max-h-full rounded-2xl"
+          onDoubleClick={() => { const ns = scale > 1 ? 1 : 2.5; scaleRef.current = ns; setScale(ns); }}
+        />
       </div>
       <button onClick={onClose} className="absolute top-6 right-5 text-white bg-black/50 rounded-full w-10 h-10 flex items-center justify-center text-lg font-bold z-10">✕</button>
     </div>
   );
 }
 
+// ─── Expense card ─────────────────────────────────────────────────────────────
 function ExpenseCard({ expense, isAdmin, onEdit, onCancel }) {
   const [imgOpen, setImgOpen] = useState(false);
+
   return (
     <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
       {expense.photo_path && (
@@ -85,10 +93,16 @@ function ExpenseCard({ expense, isAdmin, onEdit, onCancel }) {
   );
 }
 
+// ─── Pending expense card (admin) ─────────────────────────────────────────────
 function PendingExpenseCard({ expense, onAction }) {
   const [loading, setLoading] = useState(false);
   const [imgOpen, setImgOpen] = useState(false);
-  async function act(action) { setLoading(true); try { await onAction(expense.id, action); } finally { setLoading(false); } }
+
+  async function act(action) {
+    setLoading(true);
+    try { await onAction(expense.id, action); } finally { setLoading(false); }
+  }
+
   return (
     <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
       {expense.photo_path && (
@@ -114,16 +128,20 @@ function PendingExpenseCard({ expense, onAction }) {
   );
 }
 
+// ─── Bottom tab bar (admin) ───────────────────────────────────────────────────
 function BottomTab({ icon, label, active, onClick, badge }) {
   return (
     <button onClick={onClick} className={`flex-1 flex flex-col items-center py-2 relative transition ${active ? 'text-emerald-600' : 'text-slate-400'}`}>
       <span className="text-xl">{icon}</span>
       <span className="text-[10px] font-medium mt-0.5">{label}</span>
-      {badge > 0 && <span className="absolute top-1 right-1/4 bg-red-500 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{badge}</span>}
+      {badge > 0 && (
+        <span className="absolute top-1 right-1/4 bg-red-500 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">{badge}</span>
+      )}
     </button>
   );
 }
 
+// ─── Main OrgPage ─────────────────────────────────────────────────────────────
 export default function OrgPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -228,7 +246,7 @@ export default function OrgPage() {
   }
 
   function openEditOrg() {
-    setEditForm({ name: org.name, initialAmount: org.initial_amount ?? '', isUnlimited: !!org.is_unlimited, frequencyDays: org.frequency_days, showBalanceToUsers: !!org.show_balance_to_users });
+    setEditForm({ name: org.name, initialAmount: org.initial_amount ?? '', isUnlimited: !!org.is_unlimited, showBalanceToUsers: !!org.show_balance_to_users });
     setEditOrgModal(true);
   }
 
@@ -239,9 +257,11 @@ export default function OrgPage() {
   if (loading) return <div className="min-h-screen bg-slate-100 flex items-center justify-center text-slate-400 text-sm">Cargando...</div>;
   if (!org) return <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center gap-3"><p className="text-slate-500">Organización no encontrada</p><button onClick={() => navigate('/')} className="text-emerald-600 text-sm font-semibold">Volver</button></div>;
 
+  // ── USER VIEW ──────────────────────────────────────────────────────────────
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-slate-100 flex flex-col pb-24">
+        {/* Header */}
         <div className="bg-emerald-600 px-5 pt-10 pb-5">
           <div className="flex items-center gap-3 mb-4">
             <button onClick={() => navigate('/')} className="text-emerald-200 text-2xl leading-none">‹</button>
@@ -250,12 +270,26 @@ export default function OrgPage() {
               <span className="text-xs text-emerald-200">Usuario</span>
             </div>
           </div>
+          {/* Stats */}
           <div className="bg-emerald-700/50 rounded-2xl p-4 space-y-1">
-            {org.show_balance_to_users && (<div className="flex justify-between items-center"><p className="text-emerald-200 text-xs">Saldo de la caja</p><p className="text-white font-bold">{fmt(org.current_balance)}</p></div>)}
-            {org.reimbursement_balance > 0 && (<div className="flex justify-between items-center"><p className="text-emerald-200 text-xs">Te deben</p><p className="text-blue-300 font-bold">{fmt(org.reimbursement_balance)}</p></div>)}
-            {!org.show_balance_to_users && org.reimbursement_balance === 0 && (<p className="text-emerald-300 text-xs text-center">Sin saldo pendiente</p>)}
+            {org.show_balance_to_users && (
+              <div className="flex justify-between items-center">
+                <p className="text-emerald-200 text-xs">Saldo de la caja</p>
+                <p className="text-white font-bold">{fmt(org.current_balance)}</p>
+              </div>
+            )}
+            {org.reimbursement_balance > 0 && (
+              <div className="flex justify-between items-center">
+                <p className="text-emerald-200 text-xs">Te deben</p>
+                <p className="text-blue-300 font-bold">{fmt(org.reimbursement_balance)}</p>
+              </div>
+            )}
+            {!org.show_balance_to_users && org.reimbursement_balance === 0 && (
+              <p className="text-emerald-300 text-xs text-center">Sin saldo pendiente</p>
+            )}
           </div>
         </div>
+
         <div className="flex-1 px-4 py-5">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 px-1">Mis gastos</p>
           {expenses.length === 0 ? (
@@ -266,11 +300,15 @@ export default function OrgPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {expenses.map(exp => <ExpenseCard key={exp.id} expense={exp} isAdmin={false} onEdit={exp => setExpenseModal({ expense: exp })} onCancel={handleCancelExpense} />)}
+              {expenses.map(exp => (
+                <ExpenseCard key={exp.id} expense={exp} isAdmin={false} onEdit={exp => setExpenseModal({ expense: exp })} onCancel={handleCancelExpense} />
+              ))}
             </div>
           )}
         </div>
+
         <button onClick={() => setExpenseModal({})} className="fixed bottom-6 right-5 w-14 h-14 bg-emerald-500 text-white rounded-full shadow-lg flex items-center justify-center active:bg-emerald-600 transition active:scale-95"><span className="text-3xl leading-none mb-0.5">+</span></button>
+
         {expenseModal !== null && (
           <Modal title={expenseModal.expense ? 'Editar gasto' : 'Nuevo gasto'} onClose={() => setExpenseModal(null)}>
             <ExpenseForm orgId={id} expense={expenseModal.expense} onSave={handleExpenseSaved} onCancel={() => setExpenseModal(null)} />
@@ -280,8 +318,10 @@ export default function OrgPage() {
     );
   }
 
+  // ── ADMIN VIEW ─────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col pb-20">
+      {/* Header */}
       <div className="bg-emerald-600 px-5 pt-10 pb-5">
         <div className="flex items-center gap-3 mb-4">
           <button onClick={() => navigate('/')} className="text-emerald-200 text-2xl leading-none">‹</button>
@@ -294,47 +334,79 @@ export default function OrgPage() {
             <p className="text-white font-mono font-bold tracking-widest text-base">{org.code}</p>
           </div>
         </div>
+
+        {/* Balance card */}
         <div className="bg-white/15 rounded-2xl p-4 flex items-center justify-between">
           <div>
             <p className="text-emerald-200 text-xs uppercase tracking-wide">Saldo disponible</p>
             <p className="text-white text-3xl font-bold mt-1">{fmt(org.current_balance)}</p>
-            {!org.is_unlimited && org.next_reset_at && (<p className="text-emerald-300 text-xs mt-1">Recarga: {new Date(org.next_reset_at).toLocaleDateString('es-AR')}</p>)}
           </div>
           <button onClick={() => setSettleModal(true)} className="bg-white/20 border border-white/30 text-white rounded-xl px-4 py-2.5 text-sm font-semibold">💸 Saldar</button>
         </div>
       </div>
 
+      {/* Content */}
       <div className="flex-1 px-4 py-5 overflow-y-auto">
+
+        {/* GASTOS */}
         {tab === 'gastos' && (
           <>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 px-1">Todos los gastos</p>
             {nonPendingExpenses.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-center"><div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center text-4xl shadow-sm mb-4">📋</div><p className="text-slate-600 font-semibold">Sin gastos registrados</p></div>
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center text-4xl shadow-sm mb-4">📋</div>
+                <p className="text-slate-600 font-semibold">Sin gastos registrados</p>
+              </div>
             ) : (
-              <div className="space-y-3">{nonPendingExpenses.map(exp => <ExpenseCard key={exp.id} expense={exp} isAdmin={true} />)}</div>
+              <div className="space-y-3">
+                {nonPendingExpenses.map(exp => <ExpenseCard key={exp.id} expense={exp} isAdmin={true} />)}
+              </div>
             )}
             <button onClick={() => setExpenseModal({})} className="fixed bottom-24 right-5 w-14 h-14 bg-emerald-500 text-white rounded-full shadow-lg text-3xl flex items-center justify-center active:bg-emerald-600 transition active:scale-95">+</button>
           </>
         )}
 
+        {/* SOLICITUDES */}
         {tab === 'solicitudes' && (
           <>
             <div className="flex gap-2 mb-4">
-              <button onClick={() => setSolicitudTab('gastos')} className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition ${solicitudTab === 'gastos' ? 'bg-emerald-500 text-white' : 'bg-white text-slate-600'}`}>Gastos {pendingExpenses.length > 0 && `(${pendingExpenses.length})`}</button>
-              <button onClick={() => setSolicitudTab('miembros')} className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition ${solicitudTab === 'miembros' ? 'bg-emerald-500 text-white' : 'bg-white text-slate-600'}`}>Miembros {pendingMembers.length > 0 && `(${pendingMembers.length})`}</button>
+              <button onClick={() => setSolicitudTab('gastos')} className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition ${solicitudTab === 'gastos' ? 'bg-emerald-500 text-white' : 'bg-white text-slate-600'}`}>
+                Gastos {pendingExpenses.length > 0 && `(${pendingExpenses.length})`}
+              </button>
+              <button onClick={() => setSolicitudTab('miembros')} className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition ${solicitudTab === 'miembros' ? 'bg-emerald-500 text-white' : 'bg-white text-slate-600'}`}>
+                Miembros {pendingMembers.length > 0 && `(${pendingMembers.length})`}
+              </button>
             </div>
+
             {solicitudTab === 'gastos' && (
-              pendingExpenses.length === 0 ? (<div className="flex flex-col items-center justify-center py-16 text-center"><div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center text-4xl shadow-sm mb-4">✅</div><p className="text-slate-600 font-semibold">Sin gastos pendientes</p></div>) :
-              (<div className="space-y-4">{pendingExpenses.map(exp => <PendingExpenseCard key={exp.id} expense={exp} onAction={handleExpenseAction} />)}</div>)
+              pendingExpenses.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center text-4xl shadow-sm mb-4">✅</div>
+                  <p className="text-slate-600 font-semibold">Sin gastos pendientes</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {pendingExpenses.map(exp => <PendingExpenseCard key={exp.id} expense={exp} onAction={handleExpenseAction} />)}
+                </div>
+              )
             )}
+
             {solicitudTab === 'miembros' && (
-              pendingMembers.length === 0 ? (<div className="flex flex-col items-center justify-center py-16 text-center"><div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center text-4xl shadow-sm mb-4">✅</div><p className="text-slate-600 font-semibold">Sin solicitudes pendientes</p></div>) : (
+              pendingMembers.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center text-4xl shadow-sm mb-4">✅</div>
+                  <p className="text-slate-600 font-semibold">Sin solicitudes pendientes</p>
+                </div>
+              ) : (
                 <div className="space-y-3">
                   {pendingMembers.map(m => (
                     <div key={m.id} className="bg-white rounded-2xl p-4 shadow-sm">
                       <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-600 text-sm">{(m.display_name || '?').slice(0,2).toUpperCase()}</div>
-                        <div><p className="font-semibold text-slate-800">{m.display_name || '(Sin nombre)'}</p><p className="text-xs text-slate-400">{fmtDate(m.requested_at)}</p></div>
+                        <div>
+                          <p className="font-semibold text-slate-800">{m.display_name || '(Sin nombre)'}</p>
+                          <p className="text-xs text-slate-400">{fmtDate(m.requested_at)}</p>
+                        </div>
                       </div>
                       <div className="flex gap-3">
                         <button onClick={() => handleMemberAction(m.id, 'deny')} className="flex-1 bg-red-50 text-red-600 rounded-xl py-2.5 text-sm font-semibold">Denegar</button>
@@ -348,10 +420,16 @@ export default function OrgPage() {
           </>
         )}
 
+        {/* MOVIMIENTOS */}
         {tab === 'movimientos' && (
           <>
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 px-1">Historial</p>
-            {movements.length === 0 ? (<div className="flex flex-col items-center justify-center py-16 text-center"><div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center text-4xl shadow-sm mb-4">📊</div><p className="text-slate-600 font-semibold">Sin movimientos todavía</p></div>) : (
+            {movements.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center text-4xl shadow-sm mb-4">📊</div>
+                <p className="text-slate-600 font-semibold">Sin movimientos todavía</p>
+              </div>
+            ) : (
               <div className="space-y-2">
                 {movements.map(mv => (
                   <div key={mv.id} className="bg-white rounded-2xl p-4 shadow-sm flex items-start gap-3">
@@ -371,6 +449,7 @@ export default function OrgPage() {
           </>
         )}
 
+        {/* AJUSTES */}
         {tab === 'ajustes' && (
           <div className="space-y-4">
             <div className="bg-white rounded-2xl p-4 shadow-sm">
@@ -382,7 +461,6 @@ export default function OrgPage() {
                 {[
                   ['Nombre', org.name],
                   ['Monto', org.is_unlimited ? 'Sin límite' : fmt(org.initial_amount)],
-                  ...(!org.is_unlimited ? [['Frecuencia', `Cada ${org.frequency_days} días`]] : []),
                   ['Saldo visible', org.show_balance_to_users ? 'Sí' : 'No'],
                   ['Código', org.code],
                 ].map(([label, value]) => (
@@ -393,6 +471,7 @@ export default function OrgPage() {
                 ))}
               </div>
             </div>
+
             <div className="bg-white rounded-2xl p-4 shadow-sm">
               <p className="font-semibold text-slate-800 mb-3">Miembros ({members.length})</p>
               <div className="space-y-3">
@@ -422,6 +501,7 @@ export default function OrgPage() {
         )}
       </div>
 
+      {/* Bottom tab bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 flex safe-area-bottom shadow-lg">
         <BottomTab icon="📋" label="Gastos" active={tab === 'gastos'} onClick={() => setTab('gastos')} />
         <BottomTab icon="📥" label="Solicitudes" active={tab === 'solicitudes'} onClick={() => setTab('solicitudes')} badge={pendingCount} />
@@ -429,11 +509,17 @@ export default function OrgPage() {
         <BottomTab icon="⚙️" label="Ajustes" active={tab === 'ajustes'} onClick={() => setTab('ajustes')} />
       </div>
 
+      {/* FAB in solicitudes tab */}
       {tab === 'solicitudes' && (
         <button onClick={() => setExpenseModal({})} className="fixed bottom-24 right-5 w-14 h-14 bg-emerald-500 text-white rounded-full shadow-lg text-3xl flex items-center justify-center active:bg-emerald-600 transition active:scale-95">+</button>
       )}
 
-      {expenseModal !== null && (<Modal title={expenseModal.expense ? 'Editar gasto' : 'Nuevo gasto'} onClose={() => setExpenseModal(null)}><ExpenseForm orgId={id} expense={expenseModal.expense} onSave={handleExpenseSaved} onCancel={() => setExpenseModal(null)} /></Modal>)}
+      {/* ── Modals ── */}
+      {expenseModal !== null && (
+        <Modal title={expenseModal.expense ? 'Editar gasto' : 'Nuevo gasto'} onClose={() => setExpenseModal(null)}>
+          <ExpenseForm orgId={id} expense={expenseModal.expense} onSave={handleExpenseSaved} onCancel={() => setExpenseModal(null)} />
+        </Modal>
+      )}
 
       {settleModal && (
         <Modal title="Saldar caja" onClose={() => setSettleModal(false)}>
@@ -445,7 +531,10 @@ export default function OrgPage() {
               </label>
             ))}
             {settleForm.type === 'custom' && (
-              <div className="relative"><span className="absolute left-4 top-3.5 text-slate-400 text-sm">$</span><input type="number" step="0.01" min="0.01" value={settleForm.amount} onChange={e => setSettleForm(p => ({ ...p, amount: e.target.value }))} className="w-full bg-slate-100 rounded-xl pl-8 pr-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400" placeholder="0.00" required /></div>
+              <div className="relative">
+                <span className="absolute left-4 top-3.5 text-slate-400 text-sm">$</span>
+                <input type="number" step="0.01" min="0.01" value={settleForm.amount} onChange={e => setSettleForm(p => ({ ...p, amount: e.target.value }))} className="w-full bg-slate-100 rounded-xl pl-8 pr-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400" placeholder="0.00" required />
+              </div>
             )}
             <div className="flex gap-3 pt-1">
               <button type="button" onClick={() => setSettleModal(false)} className="flex-1 bg-slate-100 text-slate-600 rounded-xl py-3.5 text-sm font-semibold">Cancelar</button>
@@ -456,7 +545,7 @@ export default function OrgPage() {
       )}
 
       {settleReimburseModal && (
-        <Modal title="Saldar reintegro" onClose={() => setSettleReimburseModal(null)}>
+        <Modal title={`Saldar reintegro`} onClose={() => setSettleReimburseModal(null)}>
           <p className="text-sm text-slate-600 mb-4">Reintegro pendiente de <span className="font-bold">{settleReimburseModal.display_name || 'este miembro'}</span>: <span className="font-bold text-blue-600">{fmt(settleReimburseModal.reimbursement_balance)}</span></p>
           <form onSubmit={handleSettleReimburse} className="space-y-3">
             {[{val:'complete', label:'Saldar completamente'},{val:'custom', label:'Monto personalizado'}].map(opt => (
@@ -466,7 +555,10 @@ export default function OrgPage() {
               </label>
             ))}
             {settleReimburseForm.type === 'custom' && (
-              <div className="relative"><span className="absolute left-4 top-3.5 text-slate-400 text-sm">$</span><input type="number" step="0.01" min="0.01" value={settleReimburseForm.amount} onChange={e => setSettleReimburseForm(p => ({ ...p, amount: e.target.value }))} className="w-full bg-slate-100 rounded-xl pl-8 pr-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="0.00" required /></div>
+              <div className="relative">
+                <span className="absolute left-4 top-3.5 text-slate-400 text-sm">$</span>
+                <input type="number" step="0.01" min="0.01" value={settleReimburseForm.amount} onChange={e => setSettleReimburseForm(p => ({ ...p, amount: e.target.value }))} className="w-full bg-slate-100 rounded-xl pl-8 pr-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="0.00" required />
+              </div>
             )}
             <div className="flex gap-3 pt-1">
               <button type="button" onClick={() => setSettleReimburseModal(null)} className="flex-1 bg-slate-100 text-slate-600 rounded-xl py-3.5 text-sm font-semibold">Cancelar</button>
@@ -476,27 +568,44 @@ export default function OrgPage() {
         </Modal>
       )}
 
+      {/* Modal: ⚙️ config miembro */}
       {memberConfigModal && (
         <Modal title={memberConfigModal.display_name || 'Miembro'} onClose={() => setMemberConfigModal(null)}>
           <div className="space-y-3 pt-1">
-            <button onClick={() => { setEditDisplayNameModal(memberConfigModal); setMemberConfigModal(null); }} className="w-full bg-slate-50 text-slate-700 rounded-2xl py-4 text-sm font-semibold text-left px-5 active:bg-slate-100 transition border border-slate-200">✏️ Editar nombre</button>
+            <button
+              onClick={() => { setEditDisplayNameModal(memberConfigModal); setMemberConfigModal(null); }}
+              className="w-full bg-slate-50 text-slate-700 rounded-2xl py-4 text-sm font-semibold text-left px-5 active:bg-slate-100 transition border border-slate-200"
+            >✏️ Editar nombre</button>
             {memberConfigModal.role !== 'admin' && (
-              <button onClick={() => { if (confirm(`¿Promover a ${memberConfigModal.display_name || 'este miembro'} a administrador?`)) { handleMemberAction(memberConfigModal.id, 'promote'); setMemberConfigModal(null); } }} className="w-full bg-emerald-50 text-emerald-700 rounded-2xl py-4 text-sm font-semibold text-left px-5 active:bg-emerald-100 transition">⭐ Promover a administrador</button>
+              <button
+                onClick={() => { if (confirm(`¿Promover a ${memberConfigModal.display_name || 'este miembro'} a administrador?`)) { handleMemberAction(memberConfigModal.id, 'promote'); setMemberConfigModal(null); } }}
+                className="w-full bg-emerald-50 text-emerald-700 rounded-2xl py-4 text-sm font-semibold text-left px-5 active:bg-emerald-100 transition"
+              >⭐ Promover a administrador</button>
             )}
             {!memberConfigModal.is_creator && (
-              <button onClick={() => { if (confirm(`¿Remover a ${memberConfigModal.display_name || 'este miembro'} de la organización?`)) { handleMemberAction(memberConfigModal.id, 'remove'); setMemberConfigModal(null); } }} className="w-full bg-red-50 text-red-600 rounded-2xl py-4 text-sm font-semibold text-left px-5 active:bg-red-100 transition">🗑️ Remover de la organización</button>
+              <button
+                onClick={() => { if (confirm(`¿Remover a ${memberConfigModal.display_name || 'este miembro'} de la organización?`)) { handleMemberAction(memberConfigModal.id, 'remove'); setMemberConfigModal(null); } }}
+                className="w-full bg-red-50 text-red-600 rounded-2xl py-4 text-sm font-semibold text-left px-5 active:bg-red-100 transition"
+              >🗑️ Remover de la organización</button>
             )}
             <button onClick={() => setMemberConfigModal(null)} className="w-full bg-slate-100 text-slate-600 rounded-2xl py-4 text-sm font-semibold active:bg-slate-200 transition">Cancelar</button>
           </div>
         </Modal>
       )}
 
+      {/* Modal: admin edita nombre de un miembro */}
       {editDisplayNameModal && (
         <Modal title={`Editar nombre — ${editDisplayNameModal.display_name || 'Miembro'}`} onClose={() => setEditDisplayNameModal(null)}>
           <form onSubmit={handleEditDisplayName} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-600 mb-1.5">Nombre a mostrar</label>
-              <input name="displayName" type="text" defaultValue={editDisplayNameModal.display_name || ''} className="w-full bg-slate-100 rounded-xl px-4 py-3.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 text-sm" placeholder="Nombre visible" autoFocus maxLength={50} />
+              <input
+                name="displayName"
+                type="text"
+                defaultValue={editDisplayNameModal.display_name || ''}
+                className="w-full bg-slate-100 rounded-xl px-4 py-3.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 text-sm"
+                placeholder="Nombre visible" autoFocus maxLength={50}
+              />
             </div>
             <div className="flex gap-3">
               <button type="button" onClick={() => setEditDisplayNameModal(null)} className="flex-1 bg-slate-100 text-slate-600 rounded-xl py-3.5 text-sm font-semibold">Cancelar</button>
@@ -519,8 +628,10 @@ export default function OrgPage() {
             </label>
             {!editForm.isUnlimited && (
               <>
-                <div><label className="block text-sm font-medium text-slate-600 mb-1.5">Monto inicial</label><div className="relative"><span className="absolute left-4 top-3.5 text-slate-400 text-sm">$</span><input type="number" value={editForm.initialAmount} onChange={e => setEditForm(p => ({ ...p, initialAmount: e.target.value }))} className="w-full bg-slate-100 rounded-xl pl-8 pr-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400" step="0.01" min="0.01" required /></div></div>
-                <div><label className="block text-sm font-medium text-slate-600 mb-1.5">Frecuencia (días)</label><input type="number" value={editForm.frequencyDays} onChange={e => setEditForm(p => ({ ...p, frequencyDays: e.target.value }))} className="w-full bg-slate-100 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400" min="1" /></div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-600 mb-1.5">Monto inicial</label>
+                  <div className="relative"><span className="absolute left-4 top-3.5 text-slate-400 text-sm">$</span><input type="number" value={editForm.initialAmount} onChange={e => setEditForm(p => ({ ...p, initialAmount: e.target.value }))} className="w-full bg-slate-100 rounded-xl pl-8 pr-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400" step="0.01" min="0.01" required /></div>
+                </div>
               </>
             )}
             <label className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl cursor-pointer">
