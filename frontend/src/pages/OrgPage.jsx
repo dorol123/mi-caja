@@ -374,11 +374,11 @@ export default function OrgPage() {
         {/* SOLICITUDES */}
         {tab === 'solicitudes' && (
           <>
-            <div className="flex gap-2 mb-4">
-              <button onClick={() => setSolicitudTab('gastos')} className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition ${solicitudTab === 'gastos' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-slate-300 border border-white/15'}`}>
+            <div className="flex mb-4 bg-white/10 rounded-2xl p-1 border border-white/10 w-fit">
+              <button onClick={() => setSolicitudTab('gastos')} className={`px-5 py-1.5 rounded-xl text-sm font-semibold whitespace-nowrap transition ${solicitudTab === 'gastos' ? 'bg-emerald-500 text-white' : 'text-slate-300'}`}>
                 Gastos {pendingExpenses.length > 0 && `(${pendingExpenses.length})`}
               </button>
-              <button onClick={() => setSolicitudTab('miembros')} className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition ${solicitudTab === 'miembros' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-slate-300 border border-white/15'}`}>
+              <button onClick={() => setSolicitudTab('miembros')} className={`px-5 py-1.5 rounded-xl text-sm font-semibold whitespace-nowrap transition ${solicitudTab === 'miembros' ? 'bg-emerald-500 text-white' : 'text-slate-300'}`}>
                 Miembros {pendingMembers.length > 0 && `(${pendingMembers.length})`}
               </button>
             </div>
