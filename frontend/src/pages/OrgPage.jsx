@@ -63,7 +63,7 @@ function ExpenseCard({ expense, isAdmin, onEdit, onCancel }) {
   const [imgOpen, setImgOpen] = useState(false);
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+    <div className="bg-white rounded-2xl overflow-hidden shadow-lg">
       {expense.photo_path && (
         <button onClick={() => setImgOpen(true)} className="w-full">
           <img src={`/uploads/${expense.photo_path}`} alt="Recibo" className="w-full h-40 object-cover" />
@@ -104,7 +104,7 @@ function PendingExpenseCard({ expense, onAction }) {
   }
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+    <div className="bg-white rounded-2xl overflow-hidden shadow-lg">
       {expense.photo_path && (
         <button onClick={() => setImgOpen(true)} className="w-full">
           <img src={`/uploads/${expense.photo_path}`} alt="Recibo" className="w-full h-52 object-cover" />
@@ -131,7 +131,7 @@ function PendingExpenseCard({ expense, onAction }) {
 // ─── Bottom tab bar (admin) ───────────────────────────────────────────────────
 function BottomTab({ icon, label, active, onClick, badge }) {
   return (
-    <button onClick={onClick} className={`flex-1 flex flex-col items-center py-2 relative transition ${active ? 'text-emerald-600' : 'text-slate-400'}`}>
+    <button onClick={onClick} className={`flex-1 flex flex-col items-center py-2 relative transition ${active ? 'text-emerald-400' : 'text-slate-500'}`}>
       <span className="text-xl">{icon}</span>
       <span className="text-[10px] font-medium mt-0.5">{label}</span>
       {badge > 0 && (
@@ -254,49 +254,54 @@ export default function OrgPage() {
   const nonPendingExpenses = expenses.filter(e => e.status !== 'pending');
   const pendingCount = pendingExpenses.length + pendingMembers.length;
 
-  if (loading) return <div className="min-h-screen bg-slate-100 flex items-center justify-center text-slate-400 text-sm">Cargando...</div>;
-  if (!org) return <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center gap-3"><p className="text-slate-500">Organización no encontrada</p><button onClick={() => navigate('/')} className="text-emerald-600 text-sm font-semibold">Volver</button></div>;
+  if (loading) return <div className="min-h-screen bg-gradient-to-b from-slate-950 to-emerald-950 flex items-center justify-center text-slate-400 text-sm">Cargando...</div>;
+  if (!org) return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 to-emerald-950 flex flex-col items-center justify-center gap-3">
+      <p className="text-slate-400">Organización no encontrada</p>
+      <button onClick={() => navigate('/')} className="text-emerald-400 text-sm font-semibold">Volver</button>
+    </div>
+  );
 
   // ── USER VIEW ──────────────────────────────────────────────────────────────
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-slate-100 flex flex-col pb-24">
+      <div className="min-h-screen bg-gradient-to-b from-slate-950 to-emerald-950 flex flex-col pb-24">
         {/* Header */}
-        <div className="bg-emerald-600 px-5 pt-10 pb-5">
-          <div className="flex items-center gap-3 mb-4">
-            <button onClick={() => navigate('/')} className="text-emerald-200 text-2xl leading-none">‹</button>
+        <div className="px-5 pt-12 pb-5">
+          <div className="flex items-center gap-3 mb-5">
+            <button onClick={() => navigate('/')} className="text-emerald-400 text-2xl leading-none">‹</button>
             <div className="flex-1">
               <p className="text-white font-bold text-lg leading-tight">{org.name}</p>
-              <span className="text-xs text-emerald-200">Usuario</span>
+              <span className="text-xs text-slate-400">Usuario</span>
             </div>
           </div>
           {/* Stats */}
-          <div className="bg-emerald-700/50 rounded-2xl p-4 space-y-1">
+          <div className="bg-white/10 border border-white/15 rounded-2xl p-4 space-y-1 backdrop-blur">
             {org.show_balance_to_users && (
               <div className="flex justify-between items-center">
-                <p className="text-emerald-200 text-xs">Saldo de la caja</p>
+                <p className="text-white/60 text-xs">Saldo de la caja</p>
                 <p className="text-white font-bold">{fmt(org.current_balance)}</p>
               </div>
             )}
             {org.reimbursement_balance > 0 && (
               <div className="flex justify-between items-center">
-                <p className="text-emerald-200 text-xs">Te deben</p>
+                <p className="text-white/60 text-xs">Te deben</p>
                 <p className="text-blue-300 font-bold">{fmt(org.reimbursement_balance)}</p>
               </div>
             )}
             {!org.show_balance_to_users && org.reimbursement_balance === 0 && (
-              <p className="text-emerald-300 text-xs text-center">Sin saldo pendiente</p>
+              <p className="text-white/40 text-xs text-center">Sin saldo pendiente</p>
             )}
           </div>
         </div>
 
-        <div className="flex-1 px-4 py-5">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 px-1">Mis gastos</p>
+        <div className="flex-1 px-4 py-3">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-1">Mis gastos</p>
           {expenses.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center text-4xl shadow-sm mb-4">📋</div>
-              <p className="text-slate-600 font-semibold">Sin gastos todavía</p>
-              <p className="text-slate-400 text-sm mt-1">Tocá <strong>+</strong> para enviar uno</p>
+              <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center text-4xl mb-4 border border-white/20">📋</div>
+              <p className="text-slate-300 font-semibold">Sin gastos todavía</p>
+              <p className="text-slate-500 text-sm mt-1">Tocá <strong className="text-slate-400">+</strong> para enviar uno</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -307,7 +312,7 @@ export default function OrgPage() {
           )}
         </div>
 
-        <button onClick={() => setExpenseModal({})} className="fixed bottom-6 right-5 w-14 h-14 bg-emerald-500 text-white rounded-full shadow-lg flex items-center justify-center active:bg-emerald-600 transition active:scale-95"><span className="text-3xl leading-none mb-0.5">+</span></button>
+        <button onClick={() => setExpenseModal({})} className="fixed bottom-6 right-5 w-14 h-14 bg-emerald-500 text-white rounded-full shadow-lg shadow-emerald-900/50 flex items-center justify-center active:bg-emerald-600 transition active:scale-95"><span className="text-3xl leading-none mb-0.5">+</span></button>
 
         {expenseModal !== null && (
           <Modal title={expenseModal.expense ? 'Editar gasto' : 'Nuevo gasto'} onClose={() => setExpenseModal(null)}>
@@ -320,49 +325,49 @@ export default function OrgPage() {
 
   // ── ADMIN VIEW ─────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col pb-20">
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 to-emerald-950 flex flex-col pb-20">
       {/* Header */}
-      <div className="bg-emerald-600 px-5 pt-10 pb-5">
-        <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => navigate('/')} className="text-emerald-200 text-2xl leading-none">‹</button>
+      <div className="px-5 pt-12 pb-5">
+        <div className="flex items-center gap-3 mb-5">
+          <button onClick={() => navigate('/')} className="text-emerald-400 text-2xl leading-none">‹</button>
           <div className="flex-1">
             <p className="text-white font-bold text-lg leading-tight">{org.name}</p>
-            <span className="text-xs bg-white/20 text-white px-2 py-0.5 rounded-full font-medium">Admin</span>
+            <span className="text-xs bg-white/15 text-emerald-300 px-2 py-0.5 rounded-full font-medium border border-white/20">Admin</span>
           </div>
           <div className="text-right">
-            <p className="text-emerald-300 text-xs">Código</p>
+            <p className="text-white/50 text-xs">Código</p>
             <p className="text-white font-mono font-bold tracking-widest text-base">{org.code}</p>
           </div>
         </div>
 
         {/* Balance card */}
-        <div className="bg-white/15 rounded-2xl p-4 flex items-center justify-between">
+        <div className="bg-white/10 border border-white/15 rounded-2xl p-4 flex items-center justify-between backdrop-blur">
           <div>
-            <p className="text-emerald-200 text-xs uppercase tracking-wide">Saldo disponible</p>
+            <p className="text-white/60 text-xs uppercase tracking-wide">Saldo disponible</p>
             <p className="text-white text-3xl font-bold mt-1">{fmt(org.current_balance)}</p>
           </div>
-          <button onClick={() => setSettleModal(true)} className="bg-white/20 border border-white/30 text-white rounded-xl px-4 py-2.5 text-sm font-semibold">💸 Saldar</button>
+          <button onClick={() => setSettleModal(true)} className="bg-white/15 border border-white/25 text-white rounded-xl px-4 py-2.5 text-sm font-semibold active:bg-white/25 transition">💸 Saldar</button>
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-4 py-5 overflow-y-auto">
+      <div className="flex-1 px-4 py-3 overflow-y-auto">
 
         {/* GASTOS */}
         {tab === 'gastos' && (
           <>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 px-1">Todos los gastos</p>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-1">Todos los gastos</p>
             {nonPendingExpenses.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center text-4xl shadow-sm mb-4">📋</div>
-                <p className="text-slate-600 font-semibold">Sin gastos registrados</p>
+                <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center text-4xl mb-4 border border-white/20">📋</div>
+                <p className="text-slate-300 font-semibold">Sin gastos registrados</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {nonPendingExpenses.map(exp => <ExpenseCard key={exp.id} expense={exp} isAdmin={true} />)}
               </div>
             )}
-            <button onClick={() => setExpenseModal({})} className="fixed bottom-24 right-5 w-14 h-14 bg-emerald-500 text-white rounded-full shadow-lg text-3xl flex items-center justify-center active:bg-emerald-600 transition active:scale-95">+</button>
+            <button onClick={() => setExpenseModal({})} className="fixed bottom-24 right-5 w-14 h-14 bg-emerald-500 text-white rounded-full shadow-lg shadow-emerald-900/50 text-3xl flex items-center justify-center active:bg-emerald-600 transition active:scale-95">+</button>
           </>
         )}
 
@@ -370,10 +375,10 @@ export default function OrgPage() {
         {tab === 'solicitudes' && (
           <>
             <div className="flex gap-2 mb-4">
-              <button onClick={() => setSolicitudTab('gastos')} className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition ${solicitudTab === 'gastos' ? 'bg-emerald-500 text-white' : 'bg-white text-slate-600'}`}>
+              <button onClick={() => setSolicitudTab('gastos')} className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition ${solicitudTab === 'gastos' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-slate-300 border border-white/15'}`}>
                 Gastos {pendingExpenses.length > 0 && `(${pendingExpenses.length})`}
               </button>
-              <button onClick={() => setSolicitudTab('miembros')} className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition ${solicitudTab === 'miembros' ? 'bg-emerald-500 text-white' : 'bg-white text-slate-600'}`}>
+              <button onClick={() => setSolicitudTab('miembros')} className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition ${solicitudTab === 'miembros' ? 'bg-emerald-500 text-white' : 'bg-white/10 text-slate-300 border border-white/15'}`}>
                 Miembros {pendingMembers.length > 0 && `(${pendingMembers.length})`}
               </button>
             </div>
@@ -381,8 +386,8 @@ export default function OrgPage() {
             {solicitudTab === 'gastos' && (
               pendingExpenses.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center text-4xl shadow-sm mb-4">✅</div>
-                  <p className="text-slate-600 font-semibold">Sin gastos pendientes</p>
+                  <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center text-4xl mb-4 border border-white/20">✅</div>
+                  <p className="text-slate-300 font-semibold">Sin gastos pendientes</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -394,13 +399,13 @@ export default function OrgPage() {
             {solicitudTab === 'miembros' && (
               pendingMembers.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center text-4xl shadow-sm mb-4">✅</div>
-                  <p className="text-slate-600 font-semibold">Sin solicitudes pendientes</p>
+                  <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center text-4xl mb-4 border border-white/20">✅</div>
+                  <p className="text-slate-300 font-semibold">Sin solicitudes pendientes</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {pendingMembers.map(m => (
-                    <div key={m.id} className="bg-white rounded-2xl p-4 shadow-sm">
+                    <div key={m.id} className="bg-white rounded-2xl p-4 shadow-lg">
                       <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-600 text-sm">{(m.display_name || '?').slice(0,2).toUpperCase()}</div>
                         <div>
@@ -423,16 +428,16 @@ export default function OrgPage() {
         {/* MOVIMIENTOS */}
         {tab === 'movimientos' && (
           <>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 px-1">Historial</p>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-1">Historial</p>
             {movements.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center text-4xl shadow-sm mb-4">📊</div>
-                <p className="text-slate-600 font-semibold">Sin movimientos todavía</p>
+                <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center text-4xl mb-4 border border-white/20">📊</div>
+                <p className="text-slate-300 font-semibold">Sin movimientos todavía</p>
               </div>
             ) : (
               <div className="space-y-2">
                 {movements.map(mv => (
-                  <div key={mv.id} className="bg-white rounded-2xl p-4 shadow-sm flex items-start gap-3">
+                  <div key={mv.id} className="bg-white rounded-2xl p-4 shadow-lg flex items-start gap-3">
                     <div className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">{mvIcon[mv.type] || '📌'}</div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-slate-800 font-medium leading-snug">{mv.description}</p>
@@ -452,7 +457,7 @@ export default function OrgPage() {
         {/* AJUSTES */}
         {tab === 'ajustes' && (
           <div className="space-y-4">
-            <div className="bg-white rounded-2xl p-4 shadow-sm">
+            <div className="bg-white rounded-2xl p-4 shadow-lg">
               <div className="flex items-center justify-between mb-3">
                 <p className="font-semibold text-slate-800">Organización</p>
                 <button onClick={openEditOrg} className="text-xs text-emerald-600 font-semibold bg-emerald-50 px-3 py-1.5 rounded-lg">Editar</button>
@@ -472,7 +477,7 @@ export default function OrgPage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-4 shadow-sm">
+            <div className="bg-white rounded-2xl p-4 shadow-lg">
               <p className="font-semibold text-slate-800 mb-3">Miembros ({members.length})</p>
               <div className="space-y-3">
                 {members.map(m => (
@@ -502,7 +507,7 @@ export default function OrgPage() {
       </div>
 
       {/* Bottom tab bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 flex safe-area-bottom shadow-lg">
+      <div className="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur border-t border-white/10 flex safe-area-bottom">
         <BottomTab icon="📋" label="Gastos" active={tab === 'gastos'} onClick={() => setTab('gastos')} />
         <BottomTab icon="📥" label="Solicitudes" active={tab === 'solicitudes'} onClick={() => setTab('solicitudes')} badge={pendingCount} />
         <BottomTab icon="📊" label="Movimientos" active={tab === 'movimientos'} onClick={() => setTab('movimientos')} />
@@ -511,7 +516,7 @@ export default function OrgPage() {
 
       {/* FAB in solicitudes tab */}
       {tab === 'solicitudes' && (
-        <button onClick={() => setExpenseModal({})} className="fixed bottom-24 right-5 w-14 h-14 bg-emerald-500 text-white rounded-full shadow-lg text-3xl flex items-center justify-center active:bg-emerald-600 transition active:scale-95">+</button>
+        <button onClick={() => setExpenseModal({})} className="fixed bottom-24 right-5 w-14 h-14 bg-emerald-500 text-white rounded-full shadow-lg shadow-emerald-900/50 text-3xl flex items-center justify-center active:bg-emerald-600 transition active:scale-95">+</button>
       )}
 
       {/* ── Modals ── */}

@@ -139,42 +139,41 @@ export default function Home() {
   const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 to-emerald-950 flex flex-col">
       {/* Header */}
-      <div className="bg-emerald-600 px-5 pt-10 pb-6">
+      <div className="px-5 pt-12 pb-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-emerald-200 text-sm">Bienvenido,</p>
+            <p className="text-emerald-400 text-sm">Bienvenido,</p>
             <p className="text-white text-xl font-bold mt-0.5">{displayName}</p>
           </div>
-          <button onClick={logout} className="w-10 h-10 bg-emerald-700 rounded-full flex items-center justify-center text-white font-bold text-sm">
+          <button onClick={logout} className="w-10 h-10 bg-white/15 rounded-full flex items-center justify-center text-white font-bold text-sm border border-white/20">
             {initials}
           </button>
         </div>
       </div>
 
       {/* Body */}
-      <div className="flex-1 px-4 py-5">
-        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 px-1">Mis organizaciones</p>
+      <div className="flex-1 px-4 py-2 pb-8">
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-1">Mis organizaciones</p>
 
         {loading ? (
-          <div className="flex items-center justify-center py-20 text-slate-400 text-sm">Cargando...</div>
+          <div className="flex items-center justify-center py-20 text-slate-500 text-sm">Cargando...</div>
         ) : orgs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center text-4xl shadow-sm mb-4">🏢</div>
-            <p className="text-slate-600 font-semibold">Sin organizaciones</p>
-            <p className="text-slate-400 text-sm mt-1">Tocá <strong>+</strong> para crear o unirte a una</p>
+            <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center text-4xl mb-4 border border-white/20">🏢</div>
+            <p className="text-slate-300 font-semibold">Sin organizaciones</p>
+            <p className="text-slate-500 text-sm mt-1">Tocá <strong className="text-slate-400">+</strong> para crear o unirte a una</p>
           </div>
         ) : (
           <div className="space-y-3">
             {orgs.map(org => (
-              <button key={org.id} onClick={() => navigate(`/org/${org.id}`)} className="w-full bg-white rounded-2xl p-5 shadow-sm text-left active:scale-95 transition">
+              <button key={org.id} onClick={() => navigate(`/org/${org.id}`)} className="w-full bg-white rounded-2xl p-5 shadow-xl text-left active:scale-95 transition">
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-slate-800 text-base truncate">{org.name}</p>
                     <p className="text-2xl font-bold text-emerald-600 mt-2">{fmt(org.current_balance)}</p>
                     <p className="text-xs text-slate-400 mt-0.5">saldo disponible</p>
-                    {/* Reintegro — solo si hay saldo a favor */}
                     {org.reimbursement_balance > 0 && (
                       <p className="text-sm font-semibold text-blue-500 mt-2">Te deben {fmt(org.reimbursement_balance)}</p>
                     )}
@@ -192,14 +191,14 @@ export default function Home() {
       {/* FAB */}
       <button
         onClick={() => setModal('choose')}
-        className="fixed bottom-6 right-5 w-14 h-14 bg-emerald-500 text-white rounded-full shadow-lg flex items-center justify-center active:bg-emerald-600 transition active:scale-95"
+        className="fixed bottom-6 right-5 w-14 h-14 bg-emerald-500 text-white rounded-full shadow-lg shadow-emerald-900/50 flex items-center justify-center active:bg-emerald-600 transition active:scale-95"
       >
         <span className="text-3xl leading-none mb-0.5">+</span>
       </button>
 
       {/* Logout */}
       <div className="pb-8 pt-2 text-center">
-        <button onClick={logout} className="text-xs text-slate-400">Cerrar sesión</button>
+        <button onClick={logout} className="text-xs text-slate-600">Cerrar sesión</button>
       </div>
 
       {modal === 'choose' && (
