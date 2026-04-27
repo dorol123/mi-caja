@@ -128,10 +128,10 @@ function PendingExpenseCard({ expense, onAction }) {
   );
 }
 
-// ─── Bottom tab bar (admin) ───────────────────────────────────────────────────
+// ─── Bottom tab — individual bubble per tab ───────────────────────────────────
 function BottomTab({ icon, label, active, onClick, badge }) {
   return (
-    <button onClick={onClick} className={`relative flex flex-col items-center px-4 py-2.5 rounded-xl transition ${active ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-400 active:bg-white/5'}`}>
+    <button onClick={onClick} className={`relative flex flex-col items-center px-5 py-2.5 rounded-2xl transition border shadow-lg ${active ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/25' : 'bg-slate-900/80 backdrop-blur text-slate-400 border-white/10'}`}>
       <span className="text-xl">{icon}</span>
       <span className="text-[9px] font-medium mt-0.5">{label}</span>
       {badge > 0 && (
@@ -271,7 +271,6 @@ export default function OrgPage() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-950 to-emerald-950">
         <div className="max-w-lg mx-auto min-h-screen flex flex-col pb-24">
-          {/* Header */}
           <div className="px-5 pt-12 pb-5">
             <div className="flex items-center gap-3 mb-5">
               <button onClick={() => navigate('/')} className="text-emerald-400 text-2xl leading-none">‹</button>
@@ -298,7 +297,6 @@ export default function OrgPage() {
               )}
             </div>
           </div>
-
           <div className="flex-1 px-4 py-3">
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-1">Mis gastos</p>
             {expenses.length === 0 ? (
@@ -316,11 +314,9 @@ export default function OrgPage() {
             )}
           </div>
         </div>
-
         <button onClick={() => setExpenseModal({})} className="fixed bottom-6 right-5 w-14 h-14 bg-emerald-500 text-white rounded-full shadow-lg shadow-emerald-900/50 flex items-center justify-center active:bg-emerald-600 transition active:scale-95">
           <span className="text-3xl leading-none mb-0.5">+</span>
         </button>
-
         {expenseModal !== null && (
           <Modal title={expenseModal.expense ? 'Editar gasto' : 'Nuevo gasto'} onClose={() => setExpenseModal(null)}>
             <ExpenseForm orgId={id} expense={expenseModal.expense} onSave={handleExpenseSaved} onCancel={() => setExpenseModal(null)} />
@@ -332,190 +328,183 @@ export default function OrgPage() {
 
   // ── ADMIN VIEW ─────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 to-emerald-950">
-      <div className="max-w-lg mx-auto min-h-screen flex flex-col pb-20">
-        {/* Header */}
-        <div className="px-5 pt-12 pb-5">
-          <div className="flex items-center gap-3 mb-5">
-            <button onClick={() => navigate('/')} className="text-emerald-400 text-2xl leading-none">‹</button>
-            <div className="flex-1">
-              <p className="text-white font-bold text-lg leading-tight">{org.name}</p>
-              <span className="text-xs bg-white/15 text-emerald-300 px-2 py-0.5 rounded-full font-medium border border-white/20">Admin</span>
-            </div>
-            <div className="text-right">
-              <p className="text-white/50 text-xs">Código</p>
-              <p className="text-white font-mono font-bold tracking-widest text-base">{org.code}</p>
-            </div>
-          </div>
-
-          {/* Balance card */}
-          <div className="bg-white/10 border border-white/15 rounded-2xl p-4 flex items-center justify-between backdrop-blur">
-            <div>
-              <p className="text-white/60 text-xs uppercase tracking-wide">Saldo disponible</p>
-              <p className="text-white text-3xl font-bold mt-1">{fmt(org.current_balance)}</p>
-            </div>
-            <button onClick={() => setSettleModal(true)} className="bg-white/15 border border-white/25 text-white rounded-xl px-4 py-2.5 text-sm font-semibold active:bg-white/25 transition">💸 Saldar</button>
-          </div>
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 to-emerald-950 flex flex-col">
+      {/* Header — full viewport width */}
+      <div className="px-5 pt-12 pb-4 flex items-center gap-3">
+        <button onClick={() => navigate('/')} className="text-emerald-400 text-2xl leading-none">‹</button>
+        <div className="flex-1">
+          <p className="text-white font-bold text-lg leading-tight">{org.name}</p>
+          <span className="text-xs bg-white/15 text-emerald-300 px-2 py-0.5 rounded-full font-medium border border-white/20">Admin</span>
         </div>
-
-        {/* Content */}
-        <div className="flex-1 px-4 py-3 overflow-y-auto">
-
-          {/* GASTOS */}
-          {tab === 'gastos' && (
-            <>
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-1">Todos los gastos</p>
-              {nonPendingExpenses.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center text-4xl mb-4 border border-white/20">📋</div>
-                  <p className="text-slate-300 font-semibold">Sin gastos registrados</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {nonPendingExpenses.map(exp => <ExpenseCard key={exp.id} expense={exp} isAdmin={true} />)}
-                </div>
-              )}
-            </>
-          )}
-
-          {/* SOLICITUDES */}
-          {tab === 'solicitudes' && (
-            <>
-              <div className="flex mb-4 bg-white/10 rounded-2xl p-1 border border-white/10 w-fit">
-                <button onClick={() => setSolicitudTab('gastos')} className={`px-5 py-1.5 rounded-xl text-sm font-semibold whitespace-nowrap transition ${solicitudTab === 'gastos' ? 'bg-emerald-500 text-white' : 'text-slate-300'}`}>
-                  Gastos {pendingExpenses.length > 0 && `(${pendingExpenses.length})`}
-                </button>
-                <button onClick={() => setSolicitudTab('miembros')} className={`px-5 py-1.5 rounded-xl text-sm font-semibold whitespace-nowrap transition ${solicitudTab === 'miembros' ? 'bg-emerald-500 text-white' : 'text-slate-300'}`}>
-                  Miembros {pendingMembers.length > 0 && `(${pendingMembers.length})`}
-                </button>
-              </div>
-
-              {solicitudTab === 'gastos' && (
-                pendingExpenses.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center text-4xl mb-4 border border-white/20">✅</div>
-                    <p className="text-slate-300 font-semibold">Sin gastos pendientes</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {pendingExpenses.map(exp => <PendingExpenseCard key={exp.id} expense={exp} onAction={handleExpenseAction} />)}
-                  </div>
-                )
-              )}
-
-              {solicitudTab === 'miembros' && (
-                pendingMembers.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center text-4xl mb-4 border border-white/20">✅</div>
-                    <p className="text-slate-300 font-semibold">Sin solicitudes pendientes</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {pendingMembers.map(m => (
-                      <div key={m.id} className="bg-white rounded-2xl p-4 shadow-lg">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-600 text-sm">{(m.display_name || '?').slice(0,2).toUpperCase()}</div>
-                          <div>
-                            <p className="font-semibold text-slate-800">{m.display_name || '(Sin nombre)'}</p>
-                            <p className="text-xs text-slate-400">{fmtDate(m.requested_at)}</p>
-                          </div>
-                        </div>
-                        <div className="flex gap-3">
-                          <button onClick={() => handleMemberAction(m.id, 'deny')} className="flex-1 bg-red-50 text-red-600 rounded-xl py-2.5 text-sm font-semibold">Denegar</button>
-                          <button onClick={() => handleMemberAction(m.id, 'approve')} className="flex-1 bg-emerald-500 text-white rounded-xl py-2.5 text-sm font-semibold">Aprobar</button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )
-              )}
-            </>
-          )}
-
-          {/* MOVIMIENTOS */}
-          {tab === 'movimientos' && (
-            <>
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-1">Historial</p>
-              {movements.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center text-4xl mb-4 border border-white/20">📊</div>
-                  <p className="text-slate-300 font-semibold">Sin movimientos todavía</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {movements.map(mv => (
-                    <div key={mv.id} className="bg-white rounded-2xl p-4 shadow-lg flex items-start gap-3">
-                      <div className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">{mvIcon[mv.type] || '📌'}</div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-slate-800 font-medium leading-snug">{mv.description}</p>
-                        <div className="flex flex-wrap gap-x-2 mt-1">
-                          {mv.affected_display_name && <p className="text-xs text-slate-400"><span className="text-slate-600">{mv.affected_display_name}</span></p>}
-                          {mv.amount != null && <p className="text-xs text-slate-400">· <span className="font-medium text-slate-600">{fmt(mv.amount)}</span></p>}
-                        </div>
-                        <p className="text-xs text-slate-300 mt-1">{fmtDate(mv.created_at)}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
-
-          {/* AJUSTES */}
-          {tab === 'ajustes' && (
-            <div className="space-y-4">
-              <div className="bg-white rounded-2xl p-4 shadow-lg">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="font-semibold text-slate-800">Organización</p>
-                  <button onClick={openEditOrg} className="text-xs text-emerald-600 font-semibold bg-emerald-50 px-3 py-1.5 rounded-lg">Editar</button>
-                </div>
-                <div className="space-y-2.5">
-                  {[
-                    ['Nombre', org.name],
-                    ['Monto', org.is_unlimited ? 'Sin límite' : fmt(org.initial_amount)],
-                    ['Saldo visible', org.show_balance_to_users ? 'Sí' : 'No'],
-                    ['Código', org.code],
-                  ].map(([label, value]) => (
-                    <div key={label} className="flex justify-between items-center">
-                      <p className="text-sm text-slate-500">{label}</p>
-                      <p className={`text-sm font-semibold text-slate-800 ${label === 'Código' ? 'font-mono tracking-widest' : ''}`}>{value}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl p-4 shadow-lg">
-                <p className="font-semibold text-slate-800 mb-3">Miembros ({members.length})</p>
-                <div className="space-y-3">
-                  {members.map(m => (
-                    <div key={m.id}>
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-emerald-100 rounded-full flex items-center justify-center font-bold text-emerald-700 text-xs flex-shrink-0">{(m.display_name || '?').slice(0,2).toUpperCase()}</div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <p className="font-medium text-slate-800 text-sm truncate">{m.display_name || '(Sin nombre)'}</p>
-                            <span className={`text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${m.role === 'admin' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>{m.role === 'admin' ? 'Admin' : 'Usuario'}{m.is_creator ? ' ★' : ''}</span>
-                          </div>
-                          {m.reimbursement_balance > 0 && <p className="text-xs text-blue-500 font-medium">Reintegro: {fmt(m.reimbursement_balance)}</p>}
-                        </div>
-                        {m.id !== user?.id && (
-                          <div className="flex gap-1.5 flex-shrink-0">
-                            {m.reimbursement_balance > 0 && <button onClick={() => { setSettleReimburseModal(m); setSettleReimburseForm({ type: 'complete', amount: '' }); }} className="text-xs bg-blue-50 text-blue-600 rounded-lg px-2.5 py-1.5 font-semibold">Saldar</button>}
-                            <button onClick={() => setMemberConfigModal(m)} className="text-xs bg-slate-50 text-slate-600 rounded-lg px-2.5 py-1.5 font-semibold border border-slate-200">⚙️</button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+        <div className="text-right">
+          <p className="text-white/50 text-xs">Código</p>
+          <p className="text-white font-mono font-bold tracking-widest text-base">{org.code}</p>
         </div>
       </div>
 
-      {/* Bottom tab bar — floating bubble dock */}
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur rounded-2xl px-1 py-1 flex items-center gap-0.5 border border-white/10 shadow-2xl">
+      {/* Balance card — centered column */}
+      <div className="max-w-lg w-full mx-auto px-4 pb-5">
+        <div className="bg-white/10 border border-white/15 rounded-2xl p-4 flex items-center justify-between backdrop-blur">
+          <div>
+            <p className="text-white/60 text-xs uppercase tracking-wide">Saldo disponible</p>
+            <p className="text-white text-3xl font-bold mt-1">{fmt(org.current_balance)}</p>
+          </div>
+          <button onClick={() => setSettleModal(true)} className="bg-white/15 border border-white/25 text-white rounded-xl px-4 py-2.5 text-sm font-semibold active:bg-white/25 transition">💸 Saldar</button>
+        </div>
+      </div>
+
+      {/* Content — centered column */}
+      <div className="flex-1 max-w-lg w-full mx-auto px-4 py-3 overflow-y-auto pb-24">
+
+        {/* GASTOS */}
+        {tab === 'gastos' && (
+          <>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-1">Todos los gastos</p>
+            {nonPendingExpenses.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center text-4xl mb-4 border border-white/20">📋</div>
+                <p className="text-slate-300 font-semibold">Sin gastos registrados</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {nonPendingExpenses.map(exp => <ExpenseCard key={exp.id} expense={exp} isAdmin={true} />)}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* SOLICITUDES */}
+        {tab === 'solicitudes' && (
+          <>
+            <div className="flex mb-4 bg-white/10 rounded-2xl p-1 border border-white/10 w-fit">
+              <button onClick={() => setSolicitudTab('gastos')} className={`px-5 py-1.5 rounded-xl text-sm font-semibold whitespace-nowrap transition ${solicitudTab === 'gastos' ? 'bg-emerald-500 text-white' : 'text-slate-300'}`}>
+                Gastos {pendingExpenses.length > 0 && `(${pendingExpenses.length})`}
+              </button>
+              <button onClick={() => setSolicitudTab('miembros')} className={`px-5 py-1.5 rounded-xl text-sm font-semibold whitespace-nowrap transition ${solicitudTab === 'miembros' ? 'bg-emerald-500 text-white' : 'text-slate-300'}`}>
+                Miembros {pendingMembers.length > 0 && `(${pendingMembers.length})`}
+              </button>
+            </div>
+            {solicitudTab === 'gastos' && (
+              pendingExpenses.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center text-4xl mb-4 border border-white/20">✅</div>
+                  <p className="text-slate-300 font-semibold">Sin gastos pendientes</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {pendingExpenses.map(exp => <PendingExpenseCard key={exp.id} expense={exp} onAction={handleExpenseAction} />)}
+                </div>
+              )
+            )}
+            {solicitudTab === 'miembros' && (
+              pendingMembers.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center text-4xl mb-4 border border-white/20">✅</div>
+                  <p className="text-slate-300 font-semibold">Sin solicitudes pendientes</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {pendingMembers.map(m => (
+                    <div key={m.id} className="bg-white rounded-2xl p-4 shadow-lg">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-600 text-sm">{(m.display_name || '?').slice(0,2).toUpperCase()}</div>
+                        <div>
+                          <p className="font-semibold text-slate-800">{m.display_name || '(Sin nombre)'}</p>
+                          <p className="text-xs text-slate-400">{fmtDate(m.requested_at)}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-3">
+                        <button onClick={() => handleMemberAction(m.id, 'deny')} className="flex-1 bg-red-50 text-red-600 rounded-xl py-2.5 text-sm font-semibold">Denegar</button>
+                        <button onClick={() => handleMemberAction(m.id, 'approve')} className="flex-1 bg-emerald-500 text-white rounded-xl py-2.5 text-sm font-semibold">Aprobar</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
+            )}
+          </>
+        )}
+
+        {/* MOVIMIENTOS */}
+        {tab === 'movimientos' && (
+          <>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-1">Historial</p>
+            {movements.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center text-4xl mb-4 border border-white/20">📊</div>
+                <p className="text-slate-300 font-semibold">Sin movimientos todavía</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {movements.map(mv => (
+                  <div key={mv.id} className="bg-white rounded-2xl p-4 shadow-lg flex items-start gap-3">
+                    <div className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center text-lg flex-shrink-0">{mvIcon[mv.type] || '📌'}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-slate-800 font-medium leading-snug">{mv.description}</p>
+                      <div className="flex flex-wrap gap-x-2 mt-1">
+                        {mv.affected_display_name && <p className="text-xs text-slate-400"><span className="text-slate-600">{mv.affected_display_name}</span></p>}
+                        {mv.amount != null && <p className="text-xs text-slate-400">· <span className="font-medium text-slate-600">{fmt(mv.amount)}</span></p>}
+                      </div>
+                      <p className="text-xs text-slate-300 mt-1">{fmtDate(mv.created_at)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* AJUSTES */}
+        {tab === 'ajustes' && (
+          <div className="space-y-4">
+            <div className="bg-white rounded-2xl p-4 shadow-lg">
+              <div className="flex items-center justify-between mb-3">
+                <p className="font-semibold text-slate-800">Organización</p>
+                <button onClick={openEditOrg} className="text-xs text-emerald-600 font-semibold bg-emerald-50 px-3 py-1.5 rounded-lg">Editar</button>
+              </div>
+              <div className="space-y-2.5">
+                {[
+                  ['Nombre', org.name],
+                  ['Monto', org.is_unlimited ? 'Sin límite' : fmt(org.initial_amount)],
+                  ['Saldo visible', org.show_balance_to_users ? 'Sí' : 'No'],
+                  ['Código', org.code],
+                ].map(([label, value]) => (
+                  <div key={label} className="flex justify-between items-center">
+                    <p className="text-sm text-slate-500">{label}</p>
+                    <p className={`text-sm font-semibold text-slate-800 ${label === 'Código' ? 'font-mono tracking-widest' : ''}`}>{value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="bg-white rounded-2xl p-4 shadow-lg">
+              <p className="font-semibold text-slate-800 mb-3">Miembros ({members.length})</p>
+              <div className="space-y-3">
+                {members.map(m => (
+                  <div key={m.id} className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-emerald-100 rounded-full flex items-center justify-center font-bold text-emerald-700 text-xs flex-shrink-0">{(m.display_name || '?').slice(0,2).toUpperCase()}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <p className="font-medium text-slate-800 text-sm truncate">{m.display_name || '(Sin nombre)'}</p>
+                        <span className={`text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${m.role === 'admin' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>{m.role === 'admin' ? 'Admin' : 'Usuario'}{m.is_creator ? ' ★' : ''}</span>
+                      </div>
+                      {m.reimbursement_balance > 0 && <p className="text-xs text-blue-500 font-medium">Reintegro: {fmt(m.reimbursement_balance)}</p>}
+                    </div>
+                    {m.id !== user?.id && (
+                      <div className="flex gap-1.5 flex-shrink-0">
+                        {m.reimbursement_balance > 0 && <button onClick={() => { setSettleReimburseModal(m); setSettleReimburseForm({ type: 'complete', amount: '' }); }} className="text-xs bg-blue-50 text-blue-600 rounded-lg px-2.5 py-1.5 font-semibold">Saldar</button>}
+                        <button onClick={() => setMemberConfigModal(m)} className="text-xs bg-slate-50 text-slate-600 rounded-lg px-2.5 py-1.5 font-semibold border border-slate-200">⚙️</button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom tabs — individual bubbles spread across full width */}
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-lg px-4 flex justify-between">
         <BottomTab icon="📋" label="Gastos" active={tab === 'gastos'} onClick={() => setTab('gastos')} />
         <BottomTab icon="📥" label="Solicitudes" active={tab === 'solicitudes'} onClick={() => setTab('solicitudes')} badge={pendingCount} />
         <BottomTab icon="📊" label="Movimientos" active={tab === 'movimientos'} onClick={() => setTab('movimientos')} />
