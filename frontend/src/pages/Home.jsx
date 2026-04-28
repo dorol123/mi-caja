@@ -137,14 +137,15 @@ export default function Home() {
   const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 to-emerald-950 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 to-emerald-900 flex flex-col">
       {/* Header — full viewport width, text against edges */}
       <div className="px-5 pt-12 pb-6 flex items-center justify-between">
-        <div>
+        {/* Greeting — floating card bleeding from left edge */}
+        <div className="-ml-5 pl-5 pr-8 py-3 bg-gradient-to-r from-emerald-500/20 via-emerald-500/8 to-transparent rounded-r-2xl border-r border-t border-b border-emerald-400/15">
           <p className="text-emerald-400 text-sm">Bienvenido,</p>
           <p className="text-white text-xl font-bold mt-0.5">{displayName}</p>
         </div>
-        <button onClick={logout} className="w-10 h-10 bg-white/15 rounded-full flex items-center justify-center text-white font-bold text-sm border border-white/20">
+        <button className="w-10 h-10 bg-white/15 rounded-full flex items-center justify-center text-white font-bold text-sm border border-white/20 flex-shrink-0">
           {initials}
         </button>
       </div>
