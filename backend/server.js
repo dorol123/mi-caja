@@ -21,7 +21,7 @@ app.use('/api/orgs/:orgId/expenses', require('./routes/expenses'));
 app.use('/api/orgs/:orgId/members', require('./routes/members'));
 
 // Privacy policy
-app.get('/privacidad', (req, res) => {
+app.get('/api/privacidad', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="es">
 <head>
