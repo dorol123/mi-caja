@@ -6,7 +6,7 @@ export default function ExpenseForm({ orgId, expense, onSave, onCancel }) {
   const [description, setDescription] = useState(expense?.description || '');
   const [amount, setAmount] = useState(expense?.amount?.toString() || '');
   const [photo, setPhoto] = useState(null);
-  const [preview, setPreview] = useState(expense?.photo_path ? `/uploads/${expense.photo_path}` : null);
+  const [preview, setPreview] = useState(expense?.photo_path ? (expense.photo_path.startsWith('http') ? expense.photo_path : `/uploads/${expense.photo_path}`) : null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const galleryRef = useRef();
