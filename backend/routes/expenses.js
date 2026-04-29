@@ -1,21 +1,20 @@
 const express = require('express');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const { v2: cloudinary } = require('cloudinary');
 const db = require('../db');
 const { authenticate } = require('../middleware/auth');
 
-const UPLOADS_DIR = path.join(__dirname, '..', 'uploads');
-if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR);
-
-const storage = multer.diskStorage({
-  destination: UPLOADS_DIR,
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
-  }
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
+
+// Store in memory, upload to Cloudinary
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }
+});
 
 const router = express.Router({ mergeParams: true });
 router.use(authenticate);
@@ -37,6 +36,20 @@ function expenseWithUser(id) {
   `).get(id);
 }
 
+async function uploadToCloudinary(buffer, mimetype) {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: 'micaja', resource_type: 'image' },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result.secure_url);
+      }
+    );
+    stream.end(buffer);
+  });
+}
+
+// List expenses
 router.get('/', (req, res) => {
   const m = getMembership(req.user.id, req.params.orgId);
   if (!m) return res.status(403).json({ error: 'Sin acceso' });
@@ -70,7 +83,8 @@ router.get('/', (req, res) => {
   res.json(expenses);
 });
 
-router.post('/', upload.single('photo'), (req, res) => {
+// Submit expense
+router.post('/', upload.single('photo'), async (req, res) => {
   const m = getMembership(req.user.id, req.params.orgId);
   if (!m) return res.status(403).json({ error: 'Sin acceso' });
 
@@ -80,15 +94,25 @@ router.post('/', upload.single('photo'), (req, res) => {
   const parsedAmount = parseFloat(amount);
   if (isNaN(parsedAmount) || parsedAmount <= 0) return res.status(400).json({ error: 'Importe inválido' });
 
+  let photoUrl = null;
+  if (req.file) {
+    try {
+      photoUrl = await uploadToCloudinary(req.file.buffer, req.file.mimetype);
+    } catch (e) {
+      return res.status(500).json({ error: 'Error al subir la foto' });
+    }
+  }
+
   const result = db.prepare(`
     INSERT INTO expenses (user_id, org_id, description, photo_path, amount, status)
     VALUES (?, ?, ?, ?, ?, 'pending')
-  `).run(req.user.id, req.params.orgId, description.trim(), req.file?.filename || null, parsedAmount);
+  `).run(req.user.id, req.params.orgId, description.trim(), photoUrl, parsedAmount);
 
   res.json(expenseWithUser(Number(result.lastInsertRowid)));
 });
 
-router.put('/:expId', upload.single('photo'), (req, res) => {
+// Action on expense
+router.put('/:expId', upload.single('photo'), async (req, res) => {
   const m = getMembership(req.user.id, req.params.orgId);
   if (!m) return res.status(403).json({ error: 'Sin acceso' });
 
@@ -130,7 +154,14 @@ router.put('/:expId', upload.single('photo'), (req, res) => {
       if (parsedAmount !== null && (isNaN(parsedAmount) || parsedAmount <= 0)) {
         return res.status(400).json({ error: 'Importe inválido' });
       }
-      const newPhoto = req.file?.filename || expense.photo_path;
+      let newPhoto = expense.photo_path;
+      if (req.file) {
+        try {
+          newPhoto = await uploadToCloudinary(req.file.buffer, req.file.mimetype);
+        } catch (e) {
+          return res.status(500).json({ error: 'Error al subir la foto' });
+        }
+      }
       db.prepare('UPDATE expenses SET description = ?, amount = ?, photo_path = ? WHERE id = ?')
         .run(description?.trim() || expense.description, parsedAmount || expense.amount, newPhoto, expense.id);
     }
