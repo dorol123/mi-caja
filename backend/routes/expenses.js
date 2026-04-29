@@ -36,10 +36,10 @@ function expenseWithUser(id) {
   `).get(id);
 }
 
-async function uploadToCloudinary(buffer, mimetype) {
+async function uploadToCloudinary(buffer, mimetype, orgId) {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder: 'micaja', resource_type: 'image' },
+      { folder: `micaja/${orgId}`, resource_type: 'image' },
       (error, result) => {
         if (error) reject(error);
         else resolve(result.secure_url);
@@ -97,7 +97,7 @@ router.post('/', upload.single('photo'), async (req, res) => {
   let photoUrl = null;
   if (req.file) {
     try {
-      photoUrl = await uploadToCloudinary(req.file.buffer, req.file.mimetype);
+      photoUrl = await uploadToCloudinary(req.file.buffer, req.file.mimetype, req.params.orgId);
     } catch (e) {
       return res.status(500).json({ error: 'Error al subir la foto' });
     }
@@ -157,7 +157,7 @@ router.put('/:expId', upload.single('photo'), async (req, res) => {
       let newPhoto = expense.photo_path;
       if (req.file) {
         try {
-          newPhoto = await uploadToCloudinary(req.file.buffer, req.file.mimetype);
+          newPhoto = await uploadToCloudinary(req.file.buffer, req.file.mimetype, req.params.orgId);
         } catch (e) {
           return res.status(500).json({ error: 'Error al subir la foto' });
         }
